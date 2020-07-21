@@ -215,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
               buttonTapped: () {
                 setState(() {
                   if (itemSelecionado == 1) {
-                    item1Price = '';
+                    item1Price = '0';
                     item1PriceFormated = formataDinheiro(item1Price);
                   } else if (itemSelecionado == 2) {
                     item1Quantity = '0';
