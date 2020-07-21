@@ -30,13 +30,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var item1Price = '0';
-  var item2Price = '0';
-  var item1PriceFormated = '0';
-  var item2PriceFormated = '0';
-  var item1Quantity = '1';
-  var item2Quantity = '1';
-  var moneyMasked = new MoneyMaskedTextController(
+  String item1Price = '0';
+  String item2Price = '0';
+  String item1PriceFormated = '0';
+  String item2PriceFormated = '0';
+  String item1Quantity = '1';
+  String item2Quantity = '1';
+  String item1PriceCalc = '';
+  String item2PriceCalc = '';
+  MoneyMaskedTextController moneyMasked = new MoneyMaskedTextController(
       decimalSeparator: '.', thousandSeparator: ',', leftSymbol: 'R\$');
   int itemSelecionado = 0;
   final String moneyFormat = r'R$ 00,00';
@@ -66,11 +68,29 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildItemColumn('Item 1', item1PriceFormated, item1Quantity, 1),
-          _buildItemColumn('Item 2', item2PriceFormated, item2Quantity, 3),
+          _buildItemColumn('Item 1', item1PriceFormated, item1Quantity, 1, item1PriceCalc),
+          _buildItemColumn('Item 2', item2PriceFormated, item2Quantity, 3, item2PriceCalc),
         ],
       ),
     );
+
+    void calculaPrecoUnidade(){
+      double _quantity;
+      if (item1Quantity=='0'){
+        _quantity = 1;
+      } else {
+        _quantity = double.parse(item1Quantity);
+      }
+      moneyMasked.updateValue(double.parse(item1Price)/_quantity);
+      item1PriceCalc = moneyMasked.text;
+      if (item2Quantity=='0'){
+        _quantity = 1;
+      } else {
+        _quantity = double.parse(item2Quantity);
+      }
+      moneyMasked.updateValue(double.parse(item2Price)/_quantity);
+      item2PriceCalc = moneyMasked.text;
+    }
 
     Widget buttonSection = Expanded(
       flex: 2,
@@ -81,7 +101,6 @@ class _MyHomePageState extends State<MyHomePage> {
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
         itemBuilder: (BuildContext context, int index) {
           if (index == 3) {
-            //igual
             return MyButton(
               buttonTapped: () {
                 setState(() {
@@ -99,6 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   } else if (itemSelecionado == 4) {
                     item2Quantity += buttons[index];
                   }
+                  calculaPrecoUnidade();
                 });
               },
               color: Colors.deepPurpleAccent,
@@ -119,7 +139,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     item2Price += buttons[index];
                     moneyMasked.updateValue(double.parse(item2Price));
                     item2PriceFormated = moneyMasked.text;
+                  } else if (itemSelecionado == 2 &&
+                      !item1Quantity.contains('.')) {
+                    item1Quantity += buttons[index];
+                  } else if (itemSelecionado == 4 &&
+                      !item2Quantity.contains('.')) {
+                    item2Quantity += buttons[index];
                   }
+                  calculaPrecoUnidade();
                 });
               },
               color: Colors.deepPurpleAccent,
@@ -144,6 +171,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   } else if (itemSelecionado == 2) {
                     item1Quantity =
                         item1Quantity.substring(0, item1Quantity.length - 1);
+                    if (item1Quantity.length == 0) {
+                      item1Quantity = '0';
+                    }
                   } else if (itemSelecionado == 3) {
                     if (item2Price.length > 0) {
                       item2Price =
@@ -157,7 +187,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   } else if (itemSelecionado == 4) {
                     item2Quantity =
                         item2Quantity.substring(0, item2Quantity.length - 1);
+                    if (item2Quantity.length == 0) {
+                      item2Quantity = '0';
+                    }
                   }
+                  calculaPrecoUnidade();
                 });
               },
               color: Colors.deepPurpleAccent,
@@ -178,17 +212,26 @@ class _MyHomePageState extends State<MyHomePage> {
                       item1PriceFormated = moneyMasked.text;
                     }
                   } else if (itemSelecionado == 2) {
+                    if (item1Quantity == '0') {
+                      item1Quantity = '';
+                    }
                     item1Quantity += buttons[index];
                   } else if (itemSelecionado == 3) {
-                    if (item2Price == '0') {
-                      item2Price = '';
+                    if (!item1Price.contains(new RegExp(r'\d+\.\d{2}$'))) {
+                      if (item2Price == '0') {
+                        item2Price = '';
+                      }
+                      item2Price += buttons[index];
+                      moneyMasked.updateValue(double.parse(item2Price));
+                      item2PriceFormated = moneyMasked.text;
                     }
-                    item2Price += buttons[index];
-                    moneyMasked.updateValue(double.parse(item2Price));
-                    item2PriceFormated = moneyMasked.text;
                   } else if (itemSelecionado == 4) {
+                    if (item2Quantity == '0') {
+                      item2Quantity = '';
+                    }
                     item2Quantity += buttons[index];
                   }
+                  calculaPrecoUnidade();
                 });
               },
               color: Colors.deepPurple[50],
@@ -218,7 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Container _buildItemColumn(
-      String label, var price, var quantity, int indice) {
+      String label, String price, String quantity, int indice, String priceQuantity) {
     return Container(
       padding: const EdgeInsets.all(4.0),
       margin: EdgeInsets.all(5),
@@ -243,25 +286,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   itemSelecionado = indice;
                 });
               },
-              child: Text(price,
-                  style: TextStyle(
-                    backgroundColor:
-                        itemSelecionado == indice ? Colors.amber : Colors.white,
-                  )),
+              child: Container(
+                color: itemSelecionado == indice
+                    ? Colors.amber
+                    : Colors.transparent,
+                padding: EdgeInsets.all(10),
+                child: Text(price),
+              ),
             ),
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  itemSelecionado = indice + 1;
-                });
-              },
-              child: Text(quantity,
-                  style: TextStyle(
-                    backgroundColor: itemSelecionado == indice + 1
-                        ? Colors.amber
-                        : Colors.white,
-                  )),
-            ),
+                onTap: () {
+                  setState(() {
+                    itemSelecionado = indice + 1;
+                  });
+                },
+                child: Container(
+                  color: itemSelecionado == indice + 1
+                      ? Colors.amber
+                      : Colors.transparent,
+                  padding: EdgeInsets.all(10),
+                  child: Text(quantity),
+                )),
             Text(
               "Preço/Unidade",
               style: TextStyle(
@@ -270,7 +315,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             Text(
-              r"R$ 0,00",
+              priceQuantity,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
