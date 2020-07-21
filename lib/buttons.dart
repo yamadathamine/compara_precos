@@ -29,3 +29,33 @@ class MyButton extends StatelessWidget {
         ));
   }
 }
+
+class MyIconButton extends StatelessWidget {
+  final color;
+  final iconColor;
+  final icon;
+  final buttonTapped;
+
+  MyIconButton({this.color, this.iconColor, this.icon, this.buttonTapped});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTap: buttonTapped,
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              color: color,
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                ),
+              ),
+            ),
+          ),
+        ));
+  }
+}
