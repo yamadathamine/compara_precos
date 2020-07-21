@@ -59,17 +59,14 @@ class _MyHomePageState extends State<MyHomePage> {
     '7',
     '8',
     '9',
-    '0',
     '.',
+    '0',
     '<-',
-    'C',
-    'CA',
   ];
 
   String formataDinheiro(String valor) {
     MoneyMaskedTextController moneyMasked = new MoneyMaskedTextController(
         decimalSeparator: '.', thousandSeparator: ',', leftSymbol: 'R\$');
-
     moneyMasked.updateValue(double.parse(valor));
     return moneyMasked.text;
   }
@@ -80,12 +77,18 @@ class _MyHomePageState extends State<MyHomePage> {
     item2PriceFormated = formataDinheiro(item2Price);
 
     Widget buttonSection = Expanded(
-      flex: 1,
-      child: _buildDigitColumn(),
+      flex: 5,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(flex: 6, child: _buildDigitColumn()),
+          Expanded(flex: 3, child: _buildCleanButtons()),
+        ],
+      ),
     );
 
     Widget itemSection = Expanded(
-        flex: 1,
+        flex: 4,
         child: Container(
           padding: const EdgeInsets.all(6.0),
           child: Row(
@@ -167,34 +170,72 @@ class _MyHomePageState extends State<MyHomePage> {
     return precoAtual;
   }
 
-  Container _buildDigitColumn() {
+  Container _buildCleanButtons() {
     return Container(
-        padding: EdgeInsets.all(10),
-        child: GridView.builder(
-          itemCount: buttons.length,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5),
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 13) {
-              return MyButton(
+      padding: EdgeInsets.only(left: 10, right: 20, top: 10, bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+              height: 150,
+              width: 100,
+              child: MyButton(
                 buttonTapped: () {
                   setState(() {
-                    item1Price = '0';
-                    item1PriceFormated = formataDinheiro(item1Price);
-                    item1Quantity = '0';
-                    item2Price = '0';
-                    item2PriceFormated = formataDinheiro(item2Price);
-                    item2Quantity = '0';
+                    if (itemSelecionado == 1) {
+                      item1Price = '0';
+                      item1PriceFormated = formataDinheiro(item1Price);
+                    } else if (itemSelecionado == 2) {
+                      item1Quantity = '0';
+                    } else if (itemSelecionado == 3) {
+                      item2Price = '0';
+                      item2PriceFormated = formataDinheiro(item2Price);
+                    } else if (itemSelecionado == 4) {
+                      item2Quantity = '0';
+                    }
                     calculaPrecoUnidade();
-                    statusItem1 = Colors.transparent;
-                    statusItem2 = Colors.transparent;
                   });
                 },
                 color: buttonColor1,
                 textColor: buttonTextColor1,
-                buttonText: buttons[index],
-              );
-            } else if (index == 10) {
+                buttonText: 'C',
+              )),
+          Container(
+            height: 150,
+            width: 100,
+            child: MyButton(
+              buttonTapped: () {
+                setState(() {
+                  item1Price = '0';
+                  item1PriceFormated = formataDinheiro(item1Price);
+                  item1Quantity = '0';
+                  item2Price = '0';
+                  item2PriceFormated = formataDinheiro(item2Price);
+                  item2Quantity = '0';
+                  calculaPrecoUnidade();
+                  statusItem1 = Colors.transparent;
+                  statusItem2 = Colors.transparent;
+                });
+              },
+              color: buttonColor1,
+              textColor: buttonTextColor1,
+              buttonText: 'CA',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container _buildDigitColumn() {
+    return Container(
+        padding: EdgeInsets.only(left: 25, top: 10, right: 10, bottom: 10),
+        child: GridView.builder(
+          itemCount: buttons.length,
+          gridDelegate:
+              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 9) {
               //ponto
               return MyButton(
                 buttonTapped: () {
@@ -243,28 +284,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 iconColor: buttonTextColor1,
                 icon: Icons.backspace,
               );
-            } else if (index == 12) {
-              return MyButton(
-                buttonTapped: () {
-                  setState(() {
-                    if (itemSelecionado == 1) {
-                      item1Price = '0';
-                      item1PriceFormated = formataDinheiro(item1Price);
-                    } else if (itemSelecionado == 2) {
-                      item1Quantity = '0';
-                    } else if (itemSelecionado == 3) {
-                      item2Price = '0';
-                      item2PriceFormated = formataDinheiro(item2Price);
-                    } else if (itemSelecionado == 4) {
-                      item2Quantity = '0';
-                    }
-                    calculaPrecoUnidade();
-                  });
-                },
-                color: buttonColor1,
-                textColor: buttonTextColor1,
-                buttonText: buttons[index],
-              );
             } else {
               return MyButton(
                 buttonTapped: () {
@@ -311,7 +330,7 @@ class _MyHomePageState extends State<MyHomePage> {
       margin: EdgeInsets.only(left: 5, right: 5),
       padding: EdgeInsets.all(5),
       constraints: BoxConstraints.expand(
-        height: Theme.of(context).textTheme.headline3.fontSize * 1.1 + 300.0,
+        height: Theme.of(context).textTheme.headline3.fontSize * 1.1 + 280.0,
         width: 170,
       ),
       child: Column(
