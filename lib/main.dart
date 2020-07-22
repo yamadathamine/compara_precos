@@ -2,6 +2,7 @@ import 'package:compara_precos/buttons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:spannable_grid/spannable_grid.dart';
 
 void main() {
   runApp(ComparaPreco());
@@ -63,7 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
     '0',
     '<-',
   ];
-
   String formataDinheiro(String valor) {
     MoneyMaskedTextController moneyMasked = new MoneyMaskedTextController(
         decimalSeparator: '.', thousandSeparator: ',', leftSymbol: 'R\$');
@@ -75,29 +75,50 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     item1PriceFormated = formataDinheiro(item1Price);
     item2PriceFormated = formataDinheiro(item2Price);
+    Orientation orientation = MediaQuery.of(context).orientation;
 
     Widget buttonSection = Expanded(
       flex: 5,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(flex: 6, child: _buildDigitColumn()),
-          Expanded(flex: 3, child: _buildCleanButtons()),
-        ],
-      ),
+      child: ListView(
+        children: [Container(
+            margin: EdgeInsets.all(8),
+            child: SpannableGrid(
+              columns: 4,
+              rows: 4,
+              cells: _getCells(),
+              spacing: 2.0,
+            )
+        ),
+      ]),
     );
 
     Widget itemSection = Expanded(
         flex: 4,
         child: Container(
-          padding: const EdgeInsets.all(6.0),
+          margin: EdgeInsets.all(10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildItemColumn('Item 1', item1PriceFormated, item1Quantity, 1,
-                  item1PriceCalc, statusItem1, item1PriceCalc1000),
-              _buildItemColumn('Item 2', item2PriceFormated, item2Quantity, 3,
-                  item2PriceCalc, statusItem2, item2PriceCalc1000),
+              Expanded(
+                  flex: 1,
+                  child: _buildItemColumn(
+                      'Item 1',
+                      item1PriceFormated,
+                      item1Quantity,
+                      1,
+                      item1PriceCalc,
+                      statusItem1,
+                      item1PriceCalc1000)),
+              Expanded(
+                  flex: 1,
+                  child: _buildItemColumn(
+                      'Item 2',
+                      item2PriceFormated,
+                      item2Quantity,
+                      3,
+                      item2PriceCalc,
+                      statusItem2,
+                      item2PriceCalc1000)),
             ],
           ),
         ));
@@ -106,13 +127,19 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
+      body: Container(
+        margin: EdgeInsets.all(10),
+        child: (orientation == Orientation.portrait)?
+        Column(
+          children: <Widget>[
+            itemSection,
+            buttonSection,
+          ],
+        ):
+        Row(children: <Widget>[
           itemSection,
           buttonSection,
-        ],
+        ],),
       ),
     );
   }
@@ -170,100 +197,52 @@ class _MyHomePageState extends State<MyHomePage> {
     return precoAtual;
   }
 
-  Container _buildCleanButtons() {
-    return Container(
-      padding: EdgeInsets.only(left: 10, right: 20, top: 10, bottom: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-              height: 150,
-              width: 100,
-              child: MyButton(
-                buttonTapped: () {
-                  setState(() {
-                    if (itemSelecionado == 1) {
-                      item1Price = '0';
-                      item1PriceFormated = formataDinheiro(item1Price);
-                    } else if (itemSelecionado == 2) {
-                      item1Quantity = '0';
-                    } else if (itemSelecionado == 3) {
-                      item2Price = '0';
-                      item2PriceFormated = formataDinheiro(item2Price);
-                    } else if (itemSelecionado == 4) {
-                      item2Quantity = '0';
-                    }
-                    calculaPrecoUnidade();
-                  });
-                },
-                color: buttonColor1,
-                textColor: buttonTextColor1,
-                buttonText: 'C',
-              )),
-          Container(
-            height: 150,
-            width: 100,
-            child: MyButton(
-              buttonTapped: () {
-                setState(() {
-                  item1Price = '0';
-                  item1PriceFormated = formataDinheiro(item1Price);
-                  item1Quantity = '0';
-                  item2Price = '0';
-                  item2PriceFormated = formataDinheiro(item2Price);
-                  item2Quantity = '0';
-                  calculaPrecoUnidade();
-                  statusItem1 = Colors.transparent;
-                  statusItem2 = Colors.transparent;
-                });
-              },
-              color: buttonColor1,
-              textColor: buttonTextColor1,
-              buttonText: 'CA',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Container _buildDigitColumn() {
-    return Container(
-        padding: EdgeInsets.only(left: 25, top: 10, right: 10, bottom: 10),
-        child: GridView.builder(
-          itemCount: buttons.length,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-          itemBuilder: (BuildContext context, int index) {
-            if (index == 9) {
-              //ponto
-              return MyButton(
+  List<SpannableGridCellData> _getCells() {
+    List<SpannableGridCellData> result = List();
+    int cont = 0;
+    for (var linha = 1; linha < 5; linha++) {
+      for (var coluna = 1; coluna < 4; coluna++) {
+        if (cont == 9) {
+          //ponto
+          result.add(SpannableGridCellData(
+              column: coluna,
+              row: linha,
+              id: 'ponto',
+              child: Container(
+                  child: MyButton(
                 buttonTapped: () {
                   setState(() {
                     if (itemSelecionado == 1 && !item1Price.contains('.')) {
-                      item1Price += buttons[index];
+                      item1Price += '.';
                       item1PriceFormated = formataDinheiro(item1Price);
                     } else if (itemSelecionado == 3 &&
                         !item2Price.contains('.')) {
-                      item2Price += buttons[index];
+                      item2Price += '.';
                       item2PriceFormated = formataDinheiro(item2Price);
                       ;
                     } else if (itemSelecionado == 2 &&
                         !item1Quantity.contains('.')) {
-                      item1Quantity += buttons[index];
+                      item1Quantity += '.';
                     } else if (itemSelecionado == 4 &&
                         !item2Quantity.contains('.')) {
-                      item2Quantity += buttons[index];
+                      item2Quantity += '.';
                     }
                     calculaPrecoUnidade();
                   });
                 },
                 color: buttonColor1,
                 textColor: buttonTextColor1,
-                buttonText: buttons[index],
-              );
-            } else if (index == 11) {
-              return MyIconButton(
+                buttonText: '.',
+              )
+              )
+          ));
+        } else if (cont == 11) {
+          result.add(SpannableGridCellData(
+              column: coluna,
+              row: linha,
+              id: buttons[cont],
+              child: Container(
+                  child: MyIconButton(
                 buttonTapped: () {
                   setState(() {
                     if (itemSelecionado == 1) {
@@ -283,34 +262,107 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: buttonColor1,
                 iconColor: buttonTextColor1,
                 icon: Icons.backspace,
-              );
-            } else {
-              return MyButton(
-                buttonTapped: () {
-                  setState(() {
-                    if (itemSelecionado == 1) {
-                      item1Price = atualizaPreco(item1Price, buttons[index]);
-                      item1PriceFormated = formataDinheiro(item1Price);
-                    } else if (itemSelecionado == 2) {
-                      item1Quantity =
-                          adicionaDigito(item1Quantity, buttons[index]);
-                    } else if (itemSelecionado == 3) {
-                      item2Price = atualizaPreco(item2Price, buttons[index]);
-                      item2PriceFormated = formataDinheiro(item2Price);
-                    } else if (itemSelecionado == 4) {
-                      item2Quantity =
-                          adicionaDigito(item2Quantity, buttons[index]);
-                    }
-                    calculaPrecoUnidade();
-                  });
-                },
-                color: buttonColor2,
-                textColor: buttonTextColor2,
-                buttonText: buttons[index],
-              );
-            }
+              )
+              )
+          ));
+        } else {
+          result.add(
+            SpannableGridCellData(
+              column: coluna,
+              row: linha,
+              id: buttons[cont],
+              child: Container(
+                child: _createDigitButton(buttons[cont]),
+              ),
+            ),
+          );
+        }
+        cont++;
+      }
+    }
+    result.add(
+      SpannableGridCellData(
+        column: 4,
+        row: 1,
+        rowSpan: 2,
+        id: 'C',
+        child: Container(
+            child: MyButton(
+          buttonTapped: () {
+            setState(() {
+              if (itemSelecionado == 1) {
+                item1Price = '0';
+                item1PriceFormated = formataDinheiro(item1Price);
+              } else if (itemSelecionado == 2) {
+                item1Quantity = '0';
+              } else if (itemSelecionado == 3) {
+                item2Price = '0';
+                item2PriceFormated = formataDinheiro(item2Price);
+              } else if (itemSelecionado == 4) {
+                item2Quantity = '0';
+              }
+              calculaPrecoUnidade();
+            });
           },
-        ));
+          color: buttonColor1,
+          textColor: buttonTextColor1,
+          buttonText: 'C',
+        )),
+      ),
+    );
+    result.add(
+      SpannableGridCellData(
+        column: 4,
+        row: 3,
+        rowSpan: 2,
+        id: 'CA',
+        child: Container(
+          child: MyButton(
+            buttonTapped: () {
+              setState(() {
+                item1Price = '0';
+                item1PriceFormated = formataDinheiro(item1Price);
+                item1Quantity = '0';
+                item2Price = '0';
+                item2PriceFormated = formataDinheiro(item2Price);
+                item2Quantity = '0';
+                calculaPrecoUnidade();
+                statusItem1 = Colors.transparent;
+                statusItem2 = Colors.transparent;
+              });
+            },
+            color: buttonColor1,
+            textColor: buttonTextColor1,
+            buttonText: 'CA',
+          ),
+        ),
+      ),
+    );
+    return result;
+  }
+
+  MyButton _createDigitButton(String digit) {
+    return MyButton(
+      buttonTapped: () {
+        setState(() {
+          if (itemSelecionado == 1) {
+            item1Price = atualizaPreco(item1Price, digit);
+            item1PriceFormated = formataDinheiro(item1Price);
+          } else if (itemSelecionado == 2) {
+            item1Quantity = adicionaDigito(item1Quantity, digit);
+          } else if (itemSelecionado == 3) {
+            item2Price = atualizaPreco(item2Price, digit);
+            item2PriceFormated = formataDinheiro(item2Price);
+          } else if (itemSelecionado == 4) {
+            item2Quantity = adicionaDigito(item2Quantity, digit);
+          }
+          calculaPrecoUnidade();
+        });
+      },
+      color: buttonColor2,
+      textColor: buttonTextColor2,
+      buttonText: digit,
+    );
   }
 
   Container _buildItemColumn(
